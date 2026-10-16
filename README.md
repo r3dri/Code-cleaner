@@ -8,6 +8,65 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Made with JavaScript](https://img.shields.io/badge/Made%20with-JavaScript-f7df1e?logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
+<div align="center">
+
+<svg width="600" height="200" viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @keyframes scan {
+      0% { transform: translateX(-50px); opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateX(350px); opacity: 0; }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    @keyframes fadeClean {
+      0%, 40% { opacity: 0.3; }
+      60%, 100% { opacity: 1; }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.4; }
+    }
+    .scanner { animation: scan 3s infinite ease-in-out; }
+    .floating { animation: float 3s infinite ease-in-out; }
+    .clean-code { animation: fadeClean 3s infinite ease-in-out; }
+    .pulse-bg { animation: pulse 3s infinite ease-in-out; }
+  </style>
+  
+  <rect width="600" height="200" rx="16" fill="#1c1c1e" />
+  
+  <g transform="translate(40, 40)" opacity="0.6">
+    <rect width="180" height="120" rx="8" fill="#2c2c2e" />
+    <text x="20" y="30" fill="#ff3b30" font-family="monospace" font-size="11">/* Вот ваш код 🤖 */</text>
+    <text x="20" y="50" fill="#86868b" font-family="monospace" font-size="11">print("---")</text>
+    <text x="20" y="70" fill="#f5f5f7" font-family="monospace" font-size="11">x = 5</text>
+    <text x="20" y="90" fill="#86868b" font-family="monospace" font-size="11"># Hope this helps</text>
+    <text x="140" y="90" font-size="14">🗑️</text>
+  </g>
+
+  <g transform="translate(260, 60)">
+    <rect class="pulse-bg" width="80" height="80" rx="16" fill="#007aff" />
+ 
+    <g class="floating">
+      <path d="M40 20 L60 35 L60 55 L40 70 L20 55 L20 35 Z" fill="none" stroke="#007aff" stroke-width="3" />
+      <path d="M40 30 L40 50 M32 40 L48 40" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+    </g>
+  </g>
+
+  <rect class="scanner" x="0" y="30" width="4" height="140" fill="#007aff" filter="drop-shadow(0 0 8px #007aff)" />
+
+  <g transform="translate(380, 40)" class="clean-code">
+    <rect width="180" height="120" rx="8" fill="#2c2c2e" stroke="#007aff" stroke-width="1" />
+    <text x="20" y="50" fill="#f5f5f7" font-family="monospace" font-size="11">x = 5</text>
+    <text x="140" y="90" font-size="14">✨</text>
+  </g>
+</svg>
+
+<br>
+
 **Ваш код остаётся на вашем устройстве. Никаких серверов. Полная приватность.**
 
 <div align="center">
