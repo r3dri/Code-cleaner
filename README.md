@@ -4,7 +4,7 @@
 
 ### Локальная очистка кода от комментариев ИИ и отладочного мусора
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-blue?logo=github)](https://r3dri.github.io/code-cleaner/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-blue?logo=github)](https://r3dri.github.io/Code-cleaner/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Made with JavaScript](https://img.shields.io/badge/Made%20with-JavaScript-f7df1e?logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
@@ -13,7 +13,7 @@
 **Ваш код остаётся на вашем устройстве. Никаких серверов. Полная приватность.**
 
 <div align="center">
-  <a href="https://r3dri.github.io/code-cleaner/" target="_blank">
+  <a href="https://r3dri.github.io/Code-cleaner/" target="_blank">
     <img src="https://img.shields.io/badge/_Открыть_приложение-007AFF?style=for-the-badge&logo=rocket&logoColor=white" alt="Открыть приложение">
   </a>
 </div>
@@ -117,7 +117,7 @@
 
 ### Онлайн (через GitHub Pages)
 
-1. Перейдите на [демо-страницу](https://r3dri.github.io/code-cleaner/)
+1. Перейдите на [демо-страницу](https://r3dri.github.io/Code-cleaner/)
 2. Перетащите файл в зону загрузки или нажмите для выбора
 3. Выберите уровень агрессивности очистки
 4. Нажмите "Очистить код"
@@ -127,10 +127,10 @@
 
 ```bash
 # Клонируйте репозиторий
-git clone https://github.com/r3dri/code-cleaner.git
+git clone https://github.com/r3dri/Code-cleaner.git
 
 # Откройте index.html в браузере
-cd code-cleaner
+cd Code-cleaner
 open index.html  # macOS
 # или
 xdg-open index.html  # Linux
