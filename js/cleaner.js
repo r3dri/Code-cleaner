@@ -146,6 +146,10 @@ function removeEmojis(text) {
     return { text: text.replace(emojiRegex, ''), count };
 }
 
+function isPreprocessorDirective(line) {
+    return /^\s*#\s*(include|define|undef|if|ifdef|ifndef|else|elif|endif|error|warning|line|pragma)\b/i.test(line);
+}
+
 function cleanCode(text, level) {
     let lines = text.split('\n');
     let cleanedLines = [];
@@ -171,6 +175,12 @@ function cleanCode(text, level) {
                 removedText += ' [эмодзи]';
                 removalType = 'partial';
             }
+        }
+
+        if (isPreprocessorDirective(line)) {
+            cleanedLines.push(line);
+            removalInfo.push({ type: 'none', removedText: '', originalLine: lines[i] });
+            continue;
         }
 
         const lineCommentMatch = line.match(/^(\s*)(\/\/|#)(.*)/);
@@ -235,7 +245,7 @@ function cleanCode(text, level) {
 
         if (!wasRemoved && level === 'high' && line !== null) {
             const startLineComment = line.match(/^(\s*)(\/\/|#)(.*)/);
-            if (startLineComment) {
+            if (startLineComment && !isPreprocessorDirective(line)) {
                 wasRemoved = true;
                 removalType = 'full';
                 removedText = trimmed;
@@ -308,7 +318,6 @@ function cleanCode(text, level) {
 
     return { cleaned, commentsRemoved, printsRemoved, removalInfo };
 }
-
 function renderOriginalWithDiff(originalText, removalInfo) {
     const lines = originalText.split('\n');
     let html = '';
