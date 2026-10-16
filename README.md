@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Made with JavaScript](https://img.shields.io/badge/Made%20with-JavaScript-f7df1e?logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
-![Code Cleaner Preview](preview.png)
+![Code Cleaner Preview](screen.png)
 
 **Ваш код остаётся на вашем устройстве. Никаких серверов. Полная приватность.**
 
