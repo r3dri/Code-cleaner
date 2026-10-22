@@ -7,6 +7,7 @@ const CONFIG = {
 
 let currentFileName = 'cleaned_code.txt';
 let originalText = '';
+let cleanedText = ''; 
 let showFullPreview = false;
 
 const fileInput = document.getElementById('fileInput');
@@ -408,7 +409,10 @@ function processCode(text, level) {
         const endTime = performance.now();
         const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
 
+        cleanedText = result.cleaned;
+
         originalCodeEl.innerHTML = renderOriginalWithDiff(text, result.removalInfo);
+        
         cleanedCodeEl.innerHTML = addLineNumbersSimple(result.cleaned);
         
         document.getElementById('statTime').textContent = `⏱ ${timeTaken} сек`;
@@ -502,7 +506,6 @@ processBtn.addEventListener('click', () => {
 });
 
 document.getElementById('copyBtn').addEventListener('click', () => {
-    const cleanedText = cleanedCodeEl.innerText || cleanedCodeEl.textContent;
     navigator.clipboard.writeText(cleanedText).then(() => {
         const btn = document.getElementById('copyBtn');
         const originalHTML = btn.innerHTML;
@@ -512,7 +515,6 @@ document.getElementById('copyBtn').addEventListener('click', () => {
 });
 
 document.getElementById('downloadBtn').addEventListener('click', () => {
-    const cleanedText = cleanedCodeEl.innerText || cleanedCodeEl.textContent;
     const blob = new Blob([cleanedText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
