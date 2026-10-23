@@ -7,7 +7,7 @@ const CONFIG = {
 
 let currentFileName = 'cleaned_code.txt';
 let originalText = '';
-let cleanedText = ''; 
+let cleanedText = '';
 let showFullPreview = false;
 
 const fileInput = document.getElementById('fileInput');
@@ -73,6 +73,12 @@ function escapeHTML(str) {
         .replace(/"/g, '&quot;');
 }
 
+// Улучшенная проверка hex-цвета
+function isLikelyHexColor(text) {
+    const trimmed = text.trim();
+    return /^[0-9a-fA-F]{3}([0-9a-fA-F]{1}|[0-9a-fA-F]{3}|[0-9a-fA-F]{5})?;?\s*$/.test(trimmed);
+}
+
 function showPreview() {
     const lines = originalText.split('\n');
     const totalLines = lines.length;
@@ -103,6 +109,7 @@ function addLineNumbers(code) {
 
 function clearPreview() {
     originalText = '';
+    cleanedText = '';
     currentFileName = 'cleaned_code.txt';
     showFullPreview = false;
     
@@ -151,15 +158,6 @@ function isPreprocessorDirective(line) {
     return /^\s*#\s*(include|define|undef|if|ifdef|ifndef|else|elif|endif|error|warning|line|pragma)\b/i.test(line);
 }
 
-function isPreprocessorDirective(line) {
-    return /^\s*#\s*(include|define|undef|if|ifdef|ifndef|else|elif|endif|error|warning|line|pragma)\b/i.test(line);
-}
-
-function isLikelyHexColor(text) {
-
-    return /^[0-9a-fA-F]{3,8}(\s*[;,\)\s]|$)/.test(text);
-}
-
 function cleanCode(text, level) {
     let lines = text.split('\n');
     let cleanedLines = [];
@@ -196,7 +194,6 @@ function cleanCode(text, level) {
         const lineCommentMatch = line.match(/^(\s*)(\/\/|#)(.*)/);
         const inlineCommentMatch = line.match(/^(.+?)(\s*)(\/\/|#)(.*)/);
         
-        // Определяем, является ли найденный # комментарием или hex-цветом
         let lineCommentIsHash = lineCommentMatch && lineCommentMatch[2] === '#';
         let inlineCommentIsHash = inlineCommentMatch && inlineCommentMatch[3] === '#';
         
@@ -434,13 +431,13 @@ function processCode(text, level) {
         
         const result = cleanCode(text, level);
         
+        // Сохраняем ЧИСТЫЙ текст без номеров строк
+        cleanedText = result.cleaned;
+        
         const endTime = performance.now();
         const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
 
-        cleanedText = result.cleaned;
-
         originalCodeEl.innerHTML = renderOriginalWithDiff(text, result.removalInfo);
-        
         cleanedCodeEl.innerHTML = addLineNumbersSimple(result.cleaned);
         
         document.getElementById('statTime').textContent = `⏱ ${timeTaken} сек`;
@@ -534,15 +531,25 @@ processBtn.addEventListener('click', () => {
 });
 
 document.getElementById('copyBtn').addEventListener('click', () => {
+    if (!cleanedText) {
+        console.error('cleanedText не установлен');
+        return;
+    }
     navigator.clipboard.writeText(cleanedText).then(() => {
         const btn = document.getElementById('copyBtn');
         const originalHTML = btn.innerHTML;
         btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Скопировано!`;
         setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+    }).catch(err => {
+        console.error('Ошибка копирования:', err);
     });
 });
 
 document.getElementById('downloadBtn').addEventListener('click', () => {
+    if (!cleanedText) {
+        console.error('cleanedText не установлен');
+        return;
+    }
     const blob = new Blob([cleanedText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
