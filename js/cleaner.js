@@ -151,6 +151,15 @@ function isPreprocessorDirective(line) {
     return /^\s*#\s*(include|define|undef|if|ifdef|ifndef|else|elif|endif|error|warning|line|pragma)\b/i.test(line);
 }
 
+function isPreprocessorDirective(line) {
+    return /^\s*#\s*(include|define|undef|if|ifdef|ifndef|else|elif|endif|error|warning|line|pragma)\b/i.test(line);
+}
+
+function isLikelyHexColor(text) {
+
+    return /^[0-9a-fA-F]{3,8}(\s*[;,\)\s]|$)/.test(text);
+}
+
 function cleanCode(text, level) {
     let lines = text.split('\n');
     let cleanedLines = [];
@@ -187,20 +196,27 @@ function cleanCode(text, level) {
         const lineCommentMatch = line.match(/^(\s*)(\/\/|#)(.*)/);
         const inlineCommentMatch = line.match(/^(.+?)(\s*)(\/\/|#)(.*)/);
         
+        // Определяем, является ли найденный # комментарием или hex-цветом
+        let lineCommentIsHash = lineCommentMatch && lineCommentMatch[2] === '#';
+        let inlineCommentIsHash = inlineCommentMatch && inlineCommentMatch[3] === '#';
+        
+        let lineCommentValid = lineCommentMatch && (!lineCommentIsHash || !isLikelyHexColor(lineCommentMatch[3]));
+        let inlineCommentValid = inlineCommentMatch && (!inlineCommentIsHash || !isLikelyHexColor(inlineCommentMatch[4]));
+
         const blockCommentMatch = line.match(/^(\s*)(\/\*[\s\S]*?\*\/)(\s*)$/);
         const inlineBlockMatch = line.match(/^(.+?)(\s*\/\*[\s\S]*?\*\/\s*)$/);
         
         const htmlCommentMatch = line.match(/^(\s*)(<!--[\s\S]*?-->)(\s*)$/);
         const inlineHtmlMatch = line.match(/^(.+?)(\s*<!--[\s\S]*?-->\s*)$/);
 
-        if (lineCommentMatch && aiPhrases.test(lineCommentMatch[3])) {
+        if (lineCommentValid && aiPhrases.test(lineCommentMatch[3])) {
             wasRemoved = true;
             removalType = 'full';
             removedText = trimmed;
             commentsRemoved++;
             line = null;
         }
-        else if (inlineCommentMatch && aiPhrases.test(inlineCommentMatch[4])) {
+        else if (inlineCommentValid && aiPhrases.test(inlineCommentMatch[4])) {
             removedText = inlineCommentMatch[2] + inlineCommentMatch[3] + inlineCommentMatch[4];
             line = inlineCommentMatch[1];
             removalType = 'partial';
@@ -246,23 +262,34 @@ function cleanCode(text, level) {
 
         if (!wasRemoved && level === 'high' && line !== null) {
             const startLineComment = line.match(/^(\s*)(\/\/|#)(.*)/);
-            if (startLineComment && !isPreprocessorDirective(line)) {
-                wasRemoved = true;
-                removalType = 'full';
-                removedText = trimmed;
-                commentsRemoved++;
-                line = null;
+            if (startLineComment) {
+                const isHash = startLineComment[2] === '#';
+                const isValid = !isHash || !isLikelyHexColor(startLineComment[3]);
+                
+                if (isValid && !isPreprocessorDirective(line)) {
+                    wasRemoved = true;
+                    removalType = 'full';
+                    removedText = trimmed;
+                    commentsRemoved++;
+                    line = null;
+                }
             }
-            else {
+            
+            if (line !== null) {
                 const endLineComment = line.match(/^(.+?)(\s*)(\/\/|#)(.*)/);
                 if (endLineComment) {
-                    const codePart = endLineComment[1];
-                    const quotesBefore = (codePart.match(/(?<!\\)"/g) || []).length + (codePart.match(/(?<!\\)'/g) || []).length;
-                    if (quotesBefore % 2 === 0) {
-                        removedText = endLineComment[2] + endLineComment[3] + endLineComment[4];
-                        line = codePart;
-                        removalType = 'partial';
-                        commentsRemoved++;
+                    const isHash = endLineComment[3] === '#';
+                    const isValid = !isHash || !isLikelyHexColor(endLineComment[4]);
+                    
+                    if (isValid) {
+                        const codePart = endLineComment[1];
+                        const quotesBefore = (codePart.match(/(?<!\\)"/g) || []).length + (codePart.match(/(?<!\\)'/g) || []).length;
+                        if (quotesBefore % 2 === 0) {
+                            removedText = endLineComment[2] + endLineComment[3] + endLineComment[4];
+                            line = codePart;
+                            removalType = 'partial';
+                            commentsRemoved++;
+                        }
                     }
                 }
             }
@@ -319,6 +346,7 @@ function cleanCode(text, level) {
 
     return { cleaned, commentsRemoved, printsRemoved, removalInfo };
 }
+
 function renderOriginalWithDiff(originalText, removalInfo) {
     const lines = originalText.split('\n');
     let html = '';
