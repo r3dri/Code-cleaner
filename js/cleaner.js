@@ -158,6 +158,12 @@ function isPreprocessorDirective(line) {
     return /^\s*#\s*(include|define|undef|if|ifdef|ifndef|else|elif|endif|error|warning|line|pragma)\b/i.test(line);
 }
 
+function isHexColorStart(text) {
+    // Проверяем, начинается ли текст с 3, 4, 6 или 8 hex-символов, 
+    // за которыми следует граница слова (\b) - это может быть пробел, ;, }, ), , или конец строки
+    return /^[0-9a-fA-F]{3}(?:[0-9a-fA-F]{1}|[0-9a-fA-F]{3}|[0-9a-fA-F]{5})?\b/.test(text);
+}
+
 function cleanCode(text, level) {
     let lines = text.split('\n');
     let cleanedLines = [];
@@ -191,14 +197,23 @@ function cleanCode(text, level) {
             continue;
         }
 
-        const lineCommentMatch = line.match(/^(\s*)(\/\/|#)(.*)/);
-        const inlineCommentMatch = line.match(/^(.+?)(\s*)(\/\/|#)(.*)/);
-        
-        let lineCommentIsHash = lineCommentMatch && lineCommentMatch[2] === '#';
-        let inlineCommentIsHash = inlineCommentMatch && inlineCommentMatch[3] === '#';
-        
-        let lineCommentValid = lineCommentMatch && (!lineCommentIsHash || !isLikelyHexColor(lineCommentMatch[3]));
-        let inlineCommentValid = inlineCommentMatch && (!inlineCommentIsHash || !isLikelyHexColor(inlineCommentMatch[4]));
+        const isHtmlLine = line.includes('<') && line.includes('>');
+
+        let lineCommentMatch = null;
+        let inlineCommentMatch = null;
+        let lineCommentValid = false;
+        let inlineCommentValid = false;
+
+        if (!isHtmlLine) {
+            lineCommentMatch = line.match(/^(\s*)(\/\/|#)(.*)/);
+            inlineCommentMatch = line.match(/^(.+?)(\s*)(\/\/|#)(.*)/);
+            
+            let lineCommentIsHash = lineCommentMatch && lineCommentMatch[2] === '#';
+            let inlineCommentIsHash = inlineCommentMatch && inlineCommentMatch[3] === '#';
+            
+            lineCommentValid = lineCommentMatch && (!lineCommentIsHash || !isHexColorStart(lineCommentMatch[3]));
+            inlineCommentValid = inlineCommentMatch && (!inlineCommentIsHash || !isHexColorStart(inlineCommentMatch[4]));
+        }
 
         const blockCommentMatch = line.match(/^(\s*)(\/\*[\s\S]*?\*\/)(\s*)$/);
         const inlineBlockMatch = line.match(/^(.+?)(\s*\/\*[\s\S]*?\*\/\s*)$/);
@@ -258,34 +273,36 @@ function cleanCode(text, level) {
         }
 
         if (!wasRemoved && level === 'high' && line !== null) {
-            const startLineComment = line.match(/^(\s*)(\/\/|#)(.*)/);
-            if (startLineComment) {
-                const isHash = startLineComment[2] === '#';
-                const isValid = !isHash || !isLikelyHexColor(startLineComment[3]);
-                
-                if (isValid && !isPreprocessorDirective(line)) {
-                    wasRemoved = true;
-                    removalType = 'full';
-                    removedText = trimmed;
-                    commentsRemoved++;
-                    line = null;
-                }
-            }
-            
-            if (line !== null) {
-                const endLineComment = line.match(/^(.+?)(\s*)(\/\/|#)(.*)/);
-                if (endLineComment) {
-                    const isHash = endLineComment[3] === '#';
-                    const isValid = !isHash || !isLikelyHexColor(endLineComment[4]);
+            if (!isHtmlLine) {
+                const startLineComment = line.match(/^(\s*)(\/\/|#)(.*)/);
+                if (startLineComment) {
+                    const isHash = startLineComment[2] === '#';
+                    const isValid = !isHash || !isHexColorStart(startLineComment[3]);
                     
-                    if (isValid) {
-                        const codePart = endLineComment[1];
-                        const quotesBefore = (codePart.match(/(?<!\\)"/g) || []).length + (codePart.match(/(?<!\\)'/g) || []).length;
-                        if (quotesBefore % 2 === 0) {
-                            removedText = endLineComment[2] + endLineComment[3] + endLineComment[4];
-                            line = codePart;
-                            removalType = 'partial';
-                            commentsRemoved++;
+                    if (isValid && !isPreprocessorDirective(line)) {
+                        wasRemoved = true;
+                        removalType = 'full';
+                        removedText = trimmed;
+                        commentsRemoved++;
+                        line = null;
+                    }
+                }
+                
+                if (line !== null) {
+                    const endLineComment = line.match(/^(.+?)(\s*)(\/\/|#)(.*)/);
+                    if (endLineComment) {
+                        const isHash = endLineComment[3] === '#';
+                        const isValid = !isHash || !isHexColorStart(endLineComment[4]);
+                        
+                        if (isValid) {
+                            const codePart = endLineComment[1];
+                            const quotesBefore = (codePart.match(/(?<!\\)"/g) || []).length + (codePart.match(/(?<!\\)'/g) || []).length;
+                            if (quotesBefore % 2 === 0) {
+                                removedText = endLineComment[2] + endLineComment[3] + endLineComment[4];
+                                line = codePart;
+                                removalType = 'partial';
+                                commentsRemoved++;
+                            }
                         }
                     }
                 }
@@ -343,7 +360,6 @@ function cleanCode(text, level) {
 
     return { cleaned, commentsRemoved, printsRemoved, removalInfo };
 }
-
 function renderOriginalWithDiff(originalText, removalInfo) {
     const lines = originalText.split('\n');
     let html = '';
